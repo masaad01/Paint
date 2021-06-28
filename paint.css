@@ -1,0 +1,8 @@
+
+#container{
+    width: 100vw;
+    height: 100vh;
+
+    display: grid;
+    grid-template: 1fr 1fr / 70vw 30vw;
+}
