@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drawer</title>
-    <!-- <link rel="stylesheet" href="paint.css">
-    <script src="Drawer.js"></script>
+    <title>Paint</title>
+    <link rel="stylesheet" href="paint.css">
+    <!-- <script src="Drawer.js"></script>
     <script src="Shapes.js"></script>
     <script>
         function start() {
@@ -15,10 +15,67 @@
         }
     </script> -->
 </head>
-<body onload="start()">
+<body onload="//start()">
 </body>
     <div id="container">
-        <div></div>
-        <div></div>
+        <div id="titleSec"></div>
+        <div id="menuSec">
+            <div id="menuNames">
+                <div class="menuName home" id="activeMenu">Home</div>
+                <div class="menuName view" >View</div>
+            </div>
+            <div class="menu home" id="activeMenu">
+                <div class="submenu" id="clipboard">
+                    <div class="big button"><img src="images/paste.png" alt="">Paste</div>
+                    <div class="medium button"><img src="images/cut.png" alt="">Cut</div>
+                    <div class="medium button"><img src="images/copy.png" alt="">Copy</div>
+                    <span>Clipboard</span>
+                </div>
+                <div class="submenu" id="image">
+                    <div class="big button"><img src="images/select.png" alt="">Select</div>
+                    <div class="medium button"><img src="images/crop.png" alt="">Crop</div>
+                    <div class="medium button"><img src="images/resize.png" alt="">Resize</div>
+                    <div class="medium button"><img src="images/rotate.png" alt="">Rotate</div>
+                    <span>Image</span>
+                </div>
+                <div class="submenu" id="tools">
+                    <div class="small button"><img src="images/pencil.png" alt=""></div>
+                    <div class="small button"><img src="images/fill.png" alt=""></div>
+                    <div class="small button"><img src="images/text.png" alt=""></div>
+                    <div class="small button"><img src="images/eraser.png" alt=""></div>
+                    <div class="small button"><img src="images/colorPicker.png" alt=""></div>
+                    <div class="small button"><img src="images/magnifier.png" alt=""></div>
+                    <span>Tools</span>
+                </div>
+                <div class="submenu" id="brushes">
+                    <div class="big button"><img src="images/brushes.png" alt="">Brush</div>
+                    <span>Brushes</span>
+                </div>
+                <div class="submenu" id="shapes">
+                    <div class="medium button"><img src="images/line.png" alt="">Line</div>
+                    <div class="medium button"><img src="images/rectangle.png" alt="">Rectangle</div>
+                    <div class="medium button"><img src="images/polygon.png" alt="">Polygon</div>
+                    <div class="medium button"><img src="images/circle.png" alt="">Circle</div>
+                    <div class="medium button"><img src="images/triangle.png" alt="">Triangle</div>
+                    <span>Shapes</span>
+                </div>
+                <div class="submenu" id="size">
+                    <div class="big button"><img src="images/size.png" alt="">Size</div>
+                    <span>Size</span>
+                </div>
+                <div class="submenu" id="colors">
+                    <div class="color"><input type="color"><p>Color 1</p></div>
+                    <div class="color"><input type="color" value="#ffffff"><p>Color 2</p> </div>
+                    <span>Colors</span>
+                </div>
+            </div>
+            <div class="menu view" >
+                <div class="submenu"></div>
+                <div class="submenu"></div>
+            </div>
+        </div>
+        <div id="mainSec">
+            <canvas></canvas>
+        </div>
     </div>
 </html>

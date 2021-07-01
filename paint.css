@@ -1,8 +1,128 @@
-
+body{
+    margin: 0;
+    padding: 0;
+}
 #container{
     width: 100vw;
     height: 100vh;
+    margin: 0;
+    border: 0;
 
     display: grid;
-    grid-template: 1fr 1fr / 70vw 30vw;
+    grid-template: 1fr 6fr 25fr / 100vw;
+}
+#menuSec{
+    grid-column: 1 / span 2;
+}
+.menu{
+    width: auto;
+    height: 83%;
+    display: none;
+}
+#activeMenu{
+    display: block;
+    border: 1px solid rgb(218, 219, 220);
+    background-color: #f5f6f7;
+    display: flex;
+}
+.home{
+    /* background-color: blueviolet; */
+}
+.view{
+    /* background-color: brown; */
+}
+#menuNames{
+    width: auto;
+    height: 17%;
+
+    display: flex;
+}
+.menuName{
+    padding: 0 10px;
+}
+.submenu{
+    border-right: 1px solid #e3e4e5;
+    width: fit-content;
+    height: 80%;
+    margin: auto 0;
+    padding: 0 10px;
+    font-size: small;
+
+    display: grid;
+    grid-template: 1fr 1fr 1fr 1fr/ 1fr 1fr;
+}
+.submenu#tools{
+    grid-template: 1.5fr 1.5fr 1fr/ 1fr 1fr 1fr;
+}
+.button{
+    border: 1px solid #f5f6f7;
+}
+.button:hover{
+    background-color: #e8eff7;
+    border: 1px solid #a4cef9;
+}
+.button.selected{
+    background-color: #c9e0f7;
+    border: 1px solid #62a2e4;
+}
+.submenu .big.button{
+    grid-row: 1 / span 3;
+    text-align: center;
+}
+.submenu .big.button img{
+    margin: auto;
+    display: block;
+    width: 31px;
+    height: 31px;
+    object-fit: contain;
+}
+.submenu#brushes .big.button ,.submenu#size .big.button{
+    grid-column: 1 / span 2;
+}
+.submenu .medium.button{
+    text-align: left;
+}
+.submenu .medium.button img{
+    display: block;
+    float: left;
+    width: 15px;
+    height: 16px;
+    padding: 0 3px;
+    object-fit: contain;
+}
+.submenu .small.button img{
+    display: block;
+    margin: auto;
+    padding: 4px;
+    width: 15px;
+    height: 16px;
+    object-fit: contain;
+}
+.submenu span{
+    grid-column: 1 / span 2;
+    grid-row: 4 / 4;
+    margin: 0 auto;
+    color: #323235;
+}
+.submenu#tools span{
+    grid-column: 1 / span 3;
+    grid-row: 3 / 3;
+}
+.color{
+    grid-row: auto / span 3;
+    text-align: center;
+}
+.color input{
+    height: 35px;
+    width: 35px;
+    margin: 0 2px;
+}
+.color p{
+    margin: 2px auto;
+}
+#mainSec{
+    background-color: #cad4e3;
+}
+canvas{
+    background-color: white;
 }
