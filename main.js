@@ -99,8 +99,8 @@ class Paint{
             case "no outline":obj.flag.stroke = false;break;
             case "solid color":obj.flag.stroke = true;break;
         }
-            obj.borderColor = inputsVal.color1;
-            obj.fillColor = inputsVal.color2;
+        obj.borderColor = inputsVal.color1;
+        obj.fillColor = inputsVal.color2;
 
         const demo =(lastPos = {x:-1,y:-1})=>{
             obj.endPos = inputsVal.mousePos.point;
@@ -240,7 +240,9 @@ class Paint{
                 this.#redo.push(lastOperation);
                 break;
             case "delete":
-
+                this.#shapes.push(...lastOperation.array)
+                this.#redo.push(lastOperation);
+                break;
 
         }
     }
@@ -258,6 +260,11 @@ class Paint{
                 this.#shapes.push(...lastOperation.array);
                 this.#history.push(lastOperation);
                 break;
+            case "delete":
+                this._deleteFunction(lastOperation.array);//no need to push in history
+                break;
+
+
 
         }
     }
@@ -289,10 +296,14 @@ class Paint{
         demo();
         return arr;
     }
-    _deleteFunction(){
-        for (const obj of this.selected) {
-            this.shapes.splice(this.shapes.findIndex((shape)=>{return shape.id === obj.id}) , 1);
+    _deleteFunction(objects = this.selected){
+        this.#redo = [];
+        for (const obj of objects){
+            let index = this.shapes.findIndex((shape)=>{return shape.id === obj.id});
+            if(index != -1)
+                this.shapes.splice(index, 1);
         }
+        this.#history.push({operation:"delete", array: objects});
     }
     drawAll(){
         for(const shape of this.#shapes){
