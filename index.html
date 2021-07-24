@@ -6,19 +6,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paint</title>
     <link rel="stylesheet" href="paint.css">
-    <!-- <script src="Drawer.js"></script>
-    <script src="Shapes.js"></script>
+    <script src="main.js"></script>
+    <!-- <script src="Shapes.js"></script> -->
     <script>
         function start() {
-            let app = new DrawerGUI();
-            app.start();
+            let app = new PaintGUI();
         }
-    </script> -->
+    </script>
 </head>
-<body onload="//start()">
+<body onload="start()">
 </body>
     <div id="container">
-        <div id="titleSec"></div>
+        <div id="titleSec">
+            <div class="toolbar">
+                <div class="small button" title="Save"><img src="images/save.png" alt=""></div>
+                <div class="small button" title="Undo"><img src="images/undo.png" alt=""></div>
+                <div class="small button" title="Redo"><img src="images/redo.png" alt=""></div>
+            </div>
+            <div>
+                <input type="text" name="title" value="Untitled" id="title">
+            </div>
+        </div>
         <div id="menuSec">
             <div id="menuNames">
                 <div class="menuName home" id="activeMenu">Home</div>
@@ -34,17 +42,22 @@
                 <div class="submenu" id="image">
                     <div class="big button"><img src="images/select.png" alt="">Select</div>
                     <div class="medium button"><img src="images/crop.png" alt="">Crop</div>
-                    <div class="medium button"><img src="images/resize.png" alt="">Resize</div>
+                    <div class="medium dropMenuIcon">
+                        <img src="images/resize.png" alt="">Resize
+                        <div class="dropMenu">
+                            <input name="size" type="range" min="1" max="20" value="5">
+                        </div>
+                    </div>
                     <div class="medium button"><img src="images/rotate.png" alt="">Rotate</div>
                     <span>Image</span>
                 </div>
                 <div class="submenu" id="tools">
-                    <div class="small button"><img src="images/pencil.png" alt=""></div>
-                    <div class="small button"><img src="images/fill.png" alt=""></div>
-                    <div class="small button"><img src="images/text.png" alt=""></div>
-                    <div class="small button"><img src="images/eraser.png" alt=""></div>
-                    <div class="small button"><img src="images/colorPicker.png" alt=""></div>
-                    <div class="small button"><img src="images/magnifier.png" alt=""></div>
+                    <div class="small button" title="Pencil"><img src="images/pencil.png" alt=""></div>
+                    <div class="small button" title="Fill"><img src="images/fill.png" alt=""></div>
+                    <div class="small button" title="Text"><img src="images/text.png" alt=""></div>
+                    <div class="small button" title="Erasor"><img src="images/eraser.png" alt=""></div>
+                    <div class="small button" title="Color Picker"><img src="images/colorPicker.png" alt=""></div>
+                    <div class="small button" title="Magnifier"><img src="images/magnifier.png" alt=""></div>
                     <span>Tools</span>
                 </div>
                 <div class="submenu" id="brushes">
@@ -52,21 +65,50 @@
                     <span>Brushes</span>
                 </div>
                 <div class="submenu" id="shapes">
-                    <div class="medium button"><img src="images/line.png" alt="">Line</div>
-                    <div class="medium button"><img src="images/rectangle.png" alt="">Rectangle</div>
-                    <div class="medium button"><img src="images/polygon.png" alt="">Polygon</div>
-                    <div class="medium button"><img src="images/circle.png" alt="">Circle</div>
-                    <div class="medium button"><img src="images/triangle.png" alt="">Triangle</div>
-                    <span>Shapes</span>
+                    <div class="box">
+                        <div class="small button" title="Line"><img src="images/line.png" alt=""></div>
+                        <div class="small button" title="Rectangle"><img src="images/rectangle.png" alt=""></div>
+                        <div class="small button" title="Polygon"><img src="images/polygon.png" alt=""></div>
+                        <div class="small button" title="Circle"><img src="images/circle.png" alt=""></div>
+                        <div class="small button" title="Triangle"><img src="images/triangle.png" alt=""></div>
+                    </div>
+                    <div class="medium dropMenuIcon">
+                        <img src="images/outline.png" alt="">Outline
+                        <div class="dropMenu">
+                            <div class="medium button"><img src="images/noOutlineorFill.png" alt="">No outline</div>
+                            <div class="medium button"><img src="images/solidColor.png" alt="">Solid color</div>
+                            <div class="medium button"><img src="images/solidColor.png" alt="">Dashed</div>
+                        </div>
+                    </div>
+                    <div class="medium dropMenuIcon">
+                        <img src="images/shapeFill.png" alt="">Fill
+                        <div class="dropMenu">
+                            <div class="medium button"><img src="images/noOutlineorFill.png" alt="">No fill</div>
+                            <div class="medium button"><img src="images/solidColor.png" alt="">Solid color</div>
+                        </div>
+                    </div>
+                        <span>Shapes</span>
                 </div>
                 <div class="submenu" id="size">
-                    <div class="big button"><img src="images/size.png" alt="">Size</div>
+                    <div class="big dropMenuIcon">
+                        <img src="images/size.png" alt="">Size
+                        <div class="dropMenu">
+                            <input name="size" type="range" min="1" max="60" value="1">
+                            <span>1</span>
+                            <div style="border:1px solid black;height: 70px;background-color: white;"><div id="sizePreveiw"></div></div>
+                        </div>
+                    </div>
                     <span>Size</span>
                 </div>
                 <div class="submenu" id="colors">
-                    <div class="color"><input type="color"><p>Color 1</p></div>
-                    <div class="color"><input type="color" value="#ffffff"><p>Color 2</p> </div>
+                    <div class="color"><input name="color1" type="color" value="#000000"><p>Color 1</p></div>
+                    <div class="color"><input name="color2" type="color" value="#ffffff"><p>Color 2</p></div>
                     <span>Colors</span>
+                </div>
+                <div class="submenu" id="showOrHide">
+                    <div class="checkbox"><input name="gridlines" type="checkbox"><span>Gridlines</span></div>
+                    
+                    <span>Show or Hide</span>
                 </div>
             </div>
             <div class="menu view" >
