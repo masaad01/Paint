@@ -108,7 +108,7 @@ class Paint{
 
         const loop =(lastPos = {x:-1,y:-1})=>{
             obj.endPos = inputsVal.mousePos.point;
-            if(lastPos.x != obj.endPos.x || lastPos.y != obj.endPos.y || inputsVal.gridlines)//grid snap bug
+            if(!equalPoints(lastPos,obj.endPos) || inputsVal.gridlines)//grid snap bug
                 obj.draw();
             if(inputsVal.mouseDown){
                 requestAnimationFrame(function(){loop(obj.endPos);});
@@ -142,7 +142,7 @@ class Paint{
             obj.borderColor = inputsVal.color1;
             obj.fillColor = inputsVal.color2;
             obj.endPos = inputsVal.mousePos.point;
-            if(lastPos.x != obj.endPos.x || lastPos.y != obj.endPos.y)
+            if(!equalPoints(lastPos,obj.endPos))
                 obj.draw();
             if(inputsVal.mouseDown){
                 requestAnimationFrame(function(){loop(obj.endPos);});
@@ -176,7 +176,7 @@ class Paint{
             obj.borderColor = inputsVal.color1;
             obj.fillColor = inputsVal.color2;
             obj.endPos = inputsVal.mousePos.point;
-            if(lastPos.x != obj.endPos.x || lastPos.y != obj.endPos.y)
+            if(!equalPoints(lastPos,obj.endPos))
                 obj.draw();
             if(inputsVal.mouseDown){
                 requestAnimationFrame(function(){loop(obj.endPos);});
@@ -247,6 +247,12 @@ class Paint{
                 this.#shapes.push(...lastOperation.array)
                 this.#redo.push(lastOperation);
                 break;
+            case "changePos":
+                for (const shape of lastOperation.array){
+                    shape.changePos(-lastOperation.dx,-lastOperation.dy);
+                }
+                this.#redo.push(lastOperation);
+                break;
 
         }
     }
@@ -267,6 +273,12 @@ class Paint{
             case "delete":
                 this._deleteFunction(lastOperation.array);//no need to push in history
                 break;
+            case "changePos":
+                for (const shape of lastOperation.array){
+                    shape.changePos(lastOperation.dx,lastOperation.dy);
+                }
+                this.#history.push(lastOperation);
+                break;
 
 
 
@@ -278,6 +290,7 @@ class Paint{
         const rect = new Rectangle(this.ctx)
         rect.startPos = inputsVal.mousePos.point;
         rect.lineStyle = [4,4];
+        rect.borderColor = "blue";
 
         const loop =(lastPos = {x:-1,y:-1})=>{;
             rect.endPos = inputsVal.mousePos.point;
@@ -312,6 +325,30 @@ class Paint{
         }
         this.#history.push({operation:"delete", array: objects});
     }
+    _changePosFunction(){
+        let startP = inputsVal.mousePos.point;
+        let dxTotal = -startP.x, dyTotal = -startP.y;
+        let endP = {x:undefined,y:undefined};
+
+        const loop = ()=>{
+            endP = inputsVal.mousePos.point;
+            if(!equalPoints(startP,endP))
+                for (const shape of this.selected){
+                    shape.changePos((endP.x-startP.x),(endP.y-startP.y));
+                    shape.draw();
+                }
+            startP = endP;
+            if(inputsVal.mouseDown){
+                requestAnimationFrame(function(){loop();});
+                return;
+            }
+            dxTotal += endP.x;
+            dyTotal += endP.y;
+            this.#history.push({operation:"changePos", array: [...this.selected],dx: dxTotal,dy:dyTotal});
+
+        }
+        loop();
+    }
     drawAll(){
         for(const shape of this.#shapes){
             shape.draw();
@@ -324,6 +361,7 @@ class PaintGUI{
     #dropMenuIcons;
     #dropMenuButtons;
     #inputs;
+    #cursor;
 
     #canvas;
     #ctx;
@@ -334,6 +372,7 @@ class PaintGUI{
         this.#dropMenuIcons = {};
         this.#dropMenuButtons = {};
         this.#toolbarButtons = {};
+        this.#cursor = "auto";
 
         this.#getElements();
         this.#mainButtons.selected = "line";
@@ -415,6 +454,7 @@ class PaintGUI{
     #addEvents(){
         let self = this;
         let displayFlag = false;// to invoke display just once every ani.frame
+        let shapeHover = false;
 
         window.addEventListener("mousemove",function(event){
             inputsVal.mousePos.x = event.x;
@@ -422,6 +462,22 @@ class PaintGUI{
             inputsVal.mousePos.dx = 0;
             inputsVal.mousePos.dy = 0;
             requestAnimationFrame(function(){displayFlag = true;});
+
+            if(self.app.selected.length > 0){
+                for(const shape of self.app.selected){
+                    shapeHover = shape.hover();
+                    if(shapeHover)
+                        break;
+                } 
+                if(shapeHover)
+                    self.#cursor = "move";
+                else
+                    self.#cursor = "auto";
+            }
+            else{
+                shapeHover = false;
+                self.#cursor = "auto";
+            }
 
             if(displayFlag){
                 self.display();
@@ -432,8 +488,11 @@ class PaintGUI{
         this.#canvas.addEventListener("mousedown", function (event) {
             if (event.button == 0) { //left mouse button
                 inputsVal.mouseDown = true;
-
-                self.app.penDown();
+                if(shapeHover){
+                    self.app._changePosFunction();
+                }
+                else
+                    self.app.penDown();
                 // self.display();
             }
         });
@@ -447,8 +506,14 @@ class PaintGUI{
         document.addEventListener("keydown", function(event){
             const key = event.code;
 
-            if(key === "Delete")
-                self.app["_deleteFunction"]();
+            switch(key) {
+                case "Delete":
+                    self.app["_deleteFunction"]();
+                    break;
+                case "Escape":
+                    self.app.selected = [];
+                    break;
+            }
             
             if(event.ctrlKey){
                 if(key === "KeyZ")
@@ -541,6 +606,7 @@ class PaintGUI{
     display(){
         this.#clearCanvas();
         this.app.drawAll();
+        this.#canvas.style.cursor = this.#cursor;
     }
     reset(){
         // this.app.reset();
@@ -617,6 +683,13 @@ class Shape {
         this.endPos.y = edy;
         this.borderColor = borderColor;
     }
+    changePos(dx,dy){
+        const points = [this.startPos,this.endPos];
+        for(const p of points){
+            p.x+=dx;
+            p.y+=dy;
+        }
+    }
     draw() {
         if (this.notComplete())
             return;
@@ -657,19 +730,8 @@ class Shape {
         return Math.sqrt(dist[0].x ** 2 + dist[0].y ** 2);
     }
     hover() {
-        let size = 4;
-        let rect = new Rectangle(this.ctx);
-
-        let dist = this.pointDist(mousePos.point);
-        if (dist < s) {
-            for(const point of this.mainPoints){
-                rect.set(point.x - size, point.y - size, point.x + size, point.y + size);
-                rect.draw();
-            }
-        }
-        if (dist < s)
-            return true;
-        return false;
+        const dist = 3;
+        return (this.pointDist(inputsVal.mousePos.point) <= dist);
     }
     selected() {
         let size = 3;
@@ -763,10 +825,12 @@ class Rectangle extends Shape{
 		return {x,y,w,h};
     }
     pointDist(point){
+        if(this.middlePos.x === undefined || this.middlePos.y === undefined)
+            this.calcDimensions();
 		let distx=0,disty=0;
 		distx = Math.abs(point.x-this.middlePos.x ) - Math.abs(this.startPos.x-this.endPos.x)/2;
 		disty = Math.abs(point.y-this.middlePos.y ) - Math.abs(this.startPos.y-this.endPos.y)/2;
-		return (Math.max(distx,disty));
+		return Math.max(distx,disty);
     }
 };
 
@@ -807,7 +871,7 @@ class Circle extends Shape{
     pointDist(point){
         let dx = this.startPos.x - point.x;
         let dy = this.startPos.y - point.y;
-        return Math.abs(Math.sqrt(dx**2 + dy**2) - this.calcDimensions().r);
+        return Math.sqrt(dx**2 + dy**2) - this.calcDimensions().r;
     }
 };
 
@@ -886,6 +950,13 @@ class Brush{
         this.selected();
         
     }
+    changePos(dx,dy){
+        const points = [this.#maxPoint,this.#minPoint,...this.#points,...this.mainPoints];
+        for(const p of points){
+            p.x+=dx;
+            p.y+=dy;
+        }
+    }
     calcDimensions(){
         if( this.#minPoint.x === undefined ||
             this.#minPoint.y === undefined ||
@@ -909,17 +980,36 @@ class Brush{
         this.mainPoints[2] = {x:this.#maxPoint.x + this.size/2,y:this.#minPoint.y - this.size/2};
         this.mainPoints[3] = {x:this.#minPoint.x - this.size/2,y:this.#maxPoint.y + this.size/2};
     }
+    hover() {
+        const dist = 3;
+        return (this.pointDist(inputsVal.mousePos.point) <= dist);
+    }
+    pointDist(point) {
+        // let dist = [];
+        // for(const p of this.#points){
+        //     dist.push({
+        //         x:Math.abs(p.x - point.x),
+        //         y:Math.abs(p.y - point.y)
+        //     });
+        // }
+        // dist.sort((a, b) => (a.x + a.y) - (b.x + b.y));
+        // return Math.sqrt(dist[0].x ** 2 + dist[0].y ** 2);
+        const rect = new Rectangle(this.ctx);
+        rect.set(this.#minPoint.x,this.#minPoint.y,this.#maxPoint.x,this.#maxPoint.y)
+        return (rect.pointDist(point));
+    }
     selected() {
         let size = 2;
-        let rect = new Rectangle(this.ctx);
+        const rect = new Rectangle(this.ctx);
 
         rect.lineStyle = [4,4];
         rect.size = 0.5;
-        rect.set(this.mainPoints[0].x,this.mainPoints[0].y,this.mainPoints[1].x,this.mainPoints[1].y)
+        rect.set(this.#minPoint.x,this.#minPoint.y,this.#maxPoint.x,this.#maxPoint.y,"blue")
 
         rect.draw();
 
         rect.lineStyle = [];
+        rect.borderColor = "#000000";
         rect.flag.fill = true;
 
         for(const point of this.mainPoints){
@@ -928,3 +1018,14 @@ class Brush{
         }
     }
 };
+
+function equalPoints(...points){
+    let flag = true;
+    let p = points[0]
+    for (const point of points) {
+        flag = (point.x == p.x) && (point.y == p.y);
+        if(!flag)
+            break;
+    }
+    return flag;
+}
