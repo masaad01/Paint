@@ -81,6 +81,7 @@ body{
 .dropMenuIcon:hover{
     background-color: #e8eff7;
     border: 1px solid #a4cef9;
+    cursor: pointer;
 }
 .button.selected , 
 .dropMenuIcon.selected{
@@ -96,6 +97,7 @@ body{
     opacity: 0.4;
     background-color: initial;
     border: 1px solid #00000000;
+    cursor: auto;
 }
 .submenu .big.button , 
 .submenu .big.dropMenuIcon{

@@ -1,4 +1,4 @@
-const canvasOffset = {x: 7,y: 147};
+const canvasOffset = {x: 0,y: 0};
 const inputsVal = {
     selectedButton: "line",
     dropMenuSelectedButtons: {},
@@ -372,9 +372,13 @@ class PaintGUI{
         this.#dropMenuIcons = {};
         this.#dropMenuButtons = {};
         this.#toolbarButtons = {};
-        this.#cursor = "auto";
+        this.#cursor = "crosshair";
 
         this.#getElements();
+
+        canvasOffset.y = this.#canvas.offsetTop;
+        canvasOffset.x = this.#canvas.offsetLeft;
+
         this.#mainButtons.selected = "line";
         this.#dropMenuButtons.fill.selected = "no fill";
         
@@ -472,11 +476,11 @@ class PaintGUI{
                 if(shapeHover)
                     self.#cursor = "move";
                 else
-                    self.#cursor = "auto";
+                    self.#cursor = "crosshair";
             }
             else{
                 shapeHover = false;
-                self.#cursor = "auto";
+                self.#cursor = "crosshair";
             }
 
             if(displayFlag){
@@ -626,8 +630,8 @@ class ButtonsGroup{
         let obj = inputsVal;
         const lastProperty = this.#outputVar.pop();
         for(const property of this.#outputVar){ //traverse the object chain and update the value
-            obj = obj[property];                //example inputsVal = {prop1:{prop2:{lastProp}}}
-        }
+            obj = obj[property];                //example: outputVar = [prop1,prop2,lastProp]
+        }                                       //inputsVal = {prop1:{prop2:{lastProp}}}
         obj[lastProperty] = this.selected;
         this.#outputVar.push(lastProperty);
     }
