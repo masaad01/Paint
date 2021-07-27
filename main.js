@@ -54,7 +54,7 @@ class Paint{
         return this.#selected;
     }
     set selected(s){
-        if(this.#selected.length > 0){
+        if(this.#selected.length > 0){//remove old selected
             this.#selected.forEach((shape)=>{shape.flag.selected = false;});
         }
         this.#selected = s;
@@ -64,13 +64,16 @@ class Paint{
         return this.#shapes;
     }
     penDown(){
-        this.#redo = [];
-        const arr = this["_" + inputsVal.selectedButton + "Function"]();
-        if(!["erasor"].includes(inputsVal.selectedButton)){
-            this.selected = arr;
-        }
-        if(arr.length === 1){
-            this.#history.push({operation:inputsVal.selectedButton, array: arr});
+        this["_" + inputsVal.selectedButton + "Function"]();
+        this.selected = [];
+    }
+    #penUp(obj){
+        if(obj.id != undefined){
+            this.#shapes.push(obj);
+            this.#history.push({operation:inputsVal.selectedButton, array: [obj]});
+            if(obj.id >= 0){//not erasor
+                this.selected = [obj];
+            }
         }
     }
     updateSelected(){
@@ -91,6 +94,7 @@ class Paint{
         }
     }
     _lineFunction(){
+        this.#redo = [];
         const startP = inputsVal.mousePos.point;
         const obj = new Line(this.ctx)
         obj.startPos = startP;
@@ -102,25 +106,25 @@ class Paint{
         obj.borderColor = inputsVal.color1;
         obj.fillColor = inputsVal.color2;
 
-        const demo =(lastPos = {x:-1,y:-1})=>{
+        const loop =(lastPos = {x:-1,y:-1})=>{
             obj.endPos = inputsVal.mousePos.point;
             if(lastPos.x != obj.endPos.x || lastPos.y != obj.endPos.y || inputsVal.gridlines)//grid snap bug
                 obj.draw();
             if(inputsVal.mouseDown){
-                requestAnimationFrame(function(){demo(obj.endPos);});
+                requestAnimationFrame(function(){loop(obj.endPos);});
                 return;
             }
 
             if(obj.startPos.x != obj.endPos.x || obj.startPos.y != obj.endPos.y){
-                this.#shapes.push(obj);
                 obj.id = this.#idCounter++;
+                this.#penUp(obj);
                 obj.draw();
             }
         }
-        demo();
-        return [obj];
+        loop();
     }
     _rectangleFunction(){
+        this.#redo = [];
         const startP = inputsVal.mousePos.point;
         const obj = new Rectangle(this.ctx)
         obj.startPos = startP;
@@ -134,27 +138,27 @@ class Paint{
             case "solid color":obj.flag.fill = true;break;
         }
 
-        const demo =(lastPos = {x:-1,y:-1})=>{;
+        const loop =(lastPos = {x:-1,y:-1})=>{;
             obj.borderColor = inputsVal.color1;
             obj.fillColor = inputsVal.color2;
             obj.endPos = inputsVal.mousePos.point;
             if(lastPos.x != obj.endPos.x || lastPos.y != obj.endPos.y)
                 obj.draw();
             if(inputsVal.mouseDown){
-                requestAnimationFrame(function(){demo(obj.endPos);});
+                requestAnimationFrame(function(){loop(obj.endPos);});
                 return;
             }
 
             if(obj.startPos.x != obj.endPos.x || obj.startPos.y != obj.endPos.y){
-                this.#shapes.push(obj);
                 obj.id = this.#idCounter++;
+                this.#penUp(obj);
                 obj.draw();
             }       
         }
-        demo();
-        return [obj];
+        loop();
     }
     _circleFunction(){
+        this.#redo = [];
         const startP = inputsVal.mousePos.point;
         const obj = new Circle(this.ctx)
         obj.startPos = startP;
@@ -168,30 +172,30 @@ class Paint{
             case "solid color":obj.flag.fill = true;break;
         }
 
-        const demo =(lastPos = {x:-1,y:-1})=>{;
+        const loop =(lastPos = {x:-1,y:-1})=>{;
             obj.borderColor = inputsVal.color1;
             obj.fillColor = inputsVal.color2;
             obj.endPos = inputsVal.mousePos.point;
             if(lastPos.x != obj.endPos.x || lastPos.y != obj.endPos.y)
                 obj.draw();
             if(inputsVal.mouseDown){
-                requestAnimationFrame(function(){demo(obj.endPos);});
+                requestAnimationFrame(function(){loop(obj.endPos);});
                 return;
             }
 
             if(obj.startPos.x != obj.endPos.x || obj.startPos.y != obj.endPos.y){
-                this.#shapes.push(obj);
                 obj.id = this.#idCounter++;
+                this.#penUp(obj);
                 obj.draw();
             }        
         }
-        demo();
-        return [obj];
+        loop();
     }
     _erasorFunction(){
+        this.#redo = [];
         const obj = new Brush(this.ctx);
         obj.size = 20;
-        obj.color1 = "#fff";
+        obj.borderColor = "#fff";
 
         const erasePoint =()=>{
             obj.addPoint(inputsVal.mousePos.point);
@@ -201,15 +205,16 @@ class Paint{
                 return;
             }
             obj.finish();
-            this.#shapes.push(obj);
+            obj.id = -1;
+            this.#penUp(obj);
         }
         erasePoint();
-        return [obj];
     }
     _brushFunction(){
+        this.#redo = [];
         const obj = new Brush(this.ctx);
         obj.size = inputsVal.size;
-        obj.color1 = inputsVal.color1;
+        obj.borderColor = inputsVal.color1;
 
         const point =()=>{
             obj.addPoint(inputsVal.mousePos.point);
@@ -219,11 +224,10 @@ class Paint{
                 return;
             }
             obj.finish();
-            this.#shapes.push(obj);
             obj.id = this.#idCounter++;
+            this.#penUp(obj);
         }
         point();
-        return [obj];
     }
     _undoFunction(){
         this.selected = [];
@@ -275,26 +279,29 @@ class Paint{
         rect.startPos = inputsVal.mousePos.point;
         rect.lineStyle = [4,4];
 
-        const demo =(lastPos = {x:-1,y:-1})=>{;
+        const loop =(lastPos = {x:-1,y:-1})=>{;
             rect.endPos = inputsVal.mousePos.point;
             if(lastPos.x != rect.endPos.x || lastPos.y != rect.endPos.y)
                 rect.draw();
             if(inputsVal.mouseDown){
-                requestAnimationFrame(function(){demo(rect.endPos);});
+                requestAnimationFrame(function(){loop(rect.endPos);});
                 return;
             }
-            for(const shape of this.#shapes){
+            for(const shape of this.#shapes){//check if shapes inside the selected area
+                if(shape.id < 0)//don't select erasor shapes
+                    continue;
                 arr.push(shape);
                 for (const point of shape.mainPoints) {
-                    if(rect.pointDist(point) > 0){
-                        arr.pop();
+                    if(rect.pointDist(point) > 0){  //if any part of shape outside the selected area
+                        arr.pop();                  //do not select it
                         break;
                     }
                 }
             }
+
+            this.selected = arr;
         }
-        demo();
-        return arr;
+        loop();
     }
     _deleteFunction(objects = this.selected){
         this.#redo = [];
@@ -464,6 +471,7 @@ class PaintGUI{
             self.#toolbarButtons[toolbarButton].addEventListener("mouseup" , function(event){
                 this.className = this.className.replace(" selected" , "");
                 self.app["_"+toolbarButton+"Function"]();
+                self.display();
             });
         }
 
@@ -489,18 +497,19 @@ class PaintGUI{
                     inputsVal[input] = this.checked;
                 else
                     inputsVal[input] = this.value;
+            
+                self.app.updateSelected();
                 self.display();
             });
         }
 
         this.#inputs.size.addEventListener("change",function(){
-            let val = this.nextElementSibling;
-            let demo = document.getElementById("sizePreveiw");
+            let displayVal = this.nextElementSibling;
+            let sizePreveiw = document.getElementById("sizePreveiw");
 
-            val.innerText = this.value;
-            demo.style.height = this.value + "px";
-            // demo.style.width = parseInt(this.value) * 1.90 + 10 + "px";
-            demo.style.margin = 35 - 0.5*this.value + "px auto";
+            displayVal.innerText = this.value;
+            sizePreveiw.style.height = this.value + "px";
+            sizePreveiw.style.margin = 35 - 0.5*this.value + "px auto";
         });
 
     }
@@ -531,7 +540,6 @@ class PaintGUI{
 
     display(){
         this.#clearCanvas();
-        this.app.updateSelected();
         this.app.drawAll();
     }
     reset(){
@@ -805,14 +813,29 @@ class Circle extends Shape{
 
 class Brush{
     #points;
+    #minPoint;
+    #maxPoint;
+    #size;
     constructor(ctx){
         this.mainPoints = [];
+        this.#minPoint = {x:undefined,y:undefined};
+        this.#maxPoint = {x:undefined,y:undefined};
         this.id = undefined;
         this.#points = [];
-        this.size = 20;
+        this.#size = 1;
         this.ctx = ctx;
-        this.color1 = "#000000";
+        this.borderColor = "#000000";
         this.flag = {selected:false, finished:false};
+    }
+    set size(value){
+        if(value <= 0)
+            return;
+        this.#size = value;
+        if(this.flag.finished)
+            this.calcDimensions();
+    }
+    get size(){
+        return this.#size;
     }
     addPoint(point){
         if(this.flag.finished)
@@ -826,57 +849,65 @@ class Brush{
     draw(){
         for(let i=0,l=this.#points.length;i<l;i++){
             if(this.size > 1){
-                const obj2 = new Circle(this.ctx);
+                const obj = new Circle(this.ctx);
         
-                obj2.size = 1;
-                obj2.borderColor = this.color1;
-                obj2.fillColor = this.color1;
-                obj2.flag.fill = true;
+                obj.size = 1;
+                obj.borderColor = this.borderColor;
+                obj.fillColor = this.borderColor;
+                obj.flag.fill = true;
                 
-                obj2.startPos.x = this.#points[i].x ;//- this.size/2 +1;
-                obj2.startPos.y = this.#points[i].y;
-                obj2.endPos.x = this.#points[i].x + this.size/2 -1;
-                obj2.endPos.y = this.#points[i].y;
-                obj2.draw();
-            }
-            if(i!=0){
-                const obj = new Line(this.ctx);
-                
-                obj.size = this.size;
-                obj.borderColor = this.color1;
-
-                obj.startPos.x = this.#points[i-1].x;
-                obj.startPos.y = this.#points[i-1].y;
-                obj.endPos.x = this.#points[i].x;
+                obj.startPos.x = this.#points[i].x ;//- this.size/2 +1;
+                obj.startPos.y = this.#points[i].y;
+                obj.endPos.x = this.#points[i].x + this.size/2 -1;
                 obj.endPos.y = this.#points[i].y;
                 obj.draw();
+            }
+            if(i!=0){
+                const obj2 = new Line(this.ctx);
+                
+                obj2.size = this.size;
+                obj2.borderColor = this.borderColor;
+
+                obj2.startPos.x = this.#points[i-1].x;
+                obj2.startPos.y = this.#points[i-1].y;
+                obj2.endPos.x = this.#points[i].x;
+                obj2.endPos.y = this.#points[i].y;
+                obj2.draw();
             }
         }
         if(this.flag.selected && this.flag.finished)
             this.selected();
     }
     finish(){
-        const array = this.#points.slice();
-        let minX,minY,maxX,maxY;
         this.flag.finished = true;
+
+        this.calcDimensions();
         
-        array.sort((a,b)=>{return a.x - b.x});
-
-        minX = array[0].x;
-        maxX = array[array.length-1].x;
-        
-        array.sort((a,b)=>{return a.y - b.y});
-
-        minY = array[0].y;
-        maxY = array[array.length-1].y;
-
-        this.mainPoints[0] = {x:minX,y:minY};
-        this.mainPoints[1] = {x:maxX,y:maxY};
-        this.mainPoints[2] = {x:maxX,y:minY};
-        this.mainPoints[3] = {x:minX,y:maxY};
-
         this.selected();
         
+    }
+    calcDimensions(){
+        if( this.#minPoint.x === undefined ||
+            this.#minPoint.y === undefined ||
+            this.#maxPoint.x === undefined ||
+            this.#maxPoint.y === undefined 
+            ){
+                const array = this.#points.slice();//make a copy
+        
+                array.sort((a,b)=>{return a.x - b.x});
+        
+                this.#minPoint.x = array[0].x;
+                this.#maxPoint.x = array[array.length-1].x;
+                
+                array.sort((a,b)=>{return a.y - b.y});
+        
+                this.#minPoint.y = array[0].y;
+                this.#maxPoint.y = array[array.length-1].y;
+            }
+        this.mainPoints[0] = {x:this.#minPoint.x - this.size/2,y:this.#minPoint.y - this.size/2};
+        this.mainPoints[1] = {x:this.#maxPoint.x + this.size/2,y:this.#maxPoint.y + this.size/2};
+        this.mainPoints[2] = {x:this.#maxPoint.x + this.size/2,y:this.#minPoint.y - this.size/2};
+        this.mainPoints[3] = {x:this.#minPoint.x - this.size/2,y:this.#maxPoint.y + this.size/2};
     }
     selected() {
         let size = 2;
